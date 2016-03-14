@@ -7,8 +7,8 @@
 #include "DataStructure.h"
 
 extern Link Edge[lMAX];
-extern int first[nMAX], next[nMAX], visit[nMAX], must[nMAX];
-extern int Src, Dst, edge_num, must_num;
+extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX];
+extern int Src, Dst, node_num, edge_num, must_num;
 
 
 int strtoi(const char *str, int len)
@@ -27,7 +27,7 @@ int init(const char *topo_file, const char *demand_file)
     memset(first, -1, sizeof(first));
 
     /* 打开拓扑文件 */
-    FILE *fp=fopen(topo_file, "r");
+    FILE *fp = fopen(topo_file, "r");
     if(fp == NULL)
     {
         printf("Failed to open file %s\n", topo_file);
@@ -35,17 +35,27 @@ int init(const char *topo_file, const char *demand_file)
     }
 
     /* 读取拓扑 */
-    int cnt = 0;
+    int e_cnt = 0, n_cnt = 0;
+    int linkID, srcID, destID, cost;
     while(!feof(fp))
     {
         /* 构造邻接矩阵 */
-        fscanf(fp, "%d,%d,%d,%d", &Edge[cnt].linkID, &Edge[cnt].src, &Edge[cnt].dst, &Edge[cnt].cost);
-        next[cnt] = first[Edge[cnt].src];
-        first[Edge[cnt].src] = cnt;
-        cnt ++;
+        fscanf(fp, "%d,%d,%d,%d", &linkID, &srcID, &destID, &cost);
+        Edge[e_cnt].linkID = linkID;
+        Edge[e_cnt].src = srcID;
+        Edge[e_cnt].dst = destID;
+        Edge[e_cnt].cost = cost;
+        int temp = srcID>destID? srcID : destID;
+        n_cnt = n_cnt>temp? n_cnt : temp;
+        next[e_cnt] = first[srcID];
+        first[srcID] = e_cnt;
+
+        /*统计边数*/
+        e_cnt ++;
     }
     fclose(fp);
-    edge_num = cnt-1;
+    node_num = n_cnt + 1;
+    edge_num = e_cnt - 1;
 
     /* 打开约束条件文件 */
     fp = fopen(demand_file, "r");
@@ -63,7 +73,7 @@ int init(const char *topo_file, const char *demand_file)
     }
 
     /* 解析约束点集 */
-    cnt = 0;
+    int cnt = 0;
     int len = strlen(buf);
     char temp[5];
     int i = 0, j = 0;
