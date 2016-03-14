@@ -55,7 +55,7 @@ int init(const char *topo_file, const char *demand_file)
     }
     fclose(fp);
     node_num = n_cnt + 1;
-    edge_num = e_cnt - 1;
+    edge_num = e_cnt;
 
     /* 打开约束条件文件 */
     fp = fopen(demand_file, "r");

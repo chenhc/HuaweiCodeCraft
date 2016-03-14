@@ -17,32 +17,14 @@ extern Link Edge[lMAX];
 extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX];
 extern int Src, Dst, node_num, edge_num, must_num;
 
-int route[2<<20][20];
-int dp[2<<20][20];
+/* 20个点*/
+int route[1<<20][20];
+int dp[1<<20][20];
 
 int search_route()
 {
-
     /*节点数较少时，动态压缩dp求解*/
-    /* 分配dp数组*/
-    /*int **dp = (int **)malloc((2<<node_num) * sizeof(int));
-    for(int i=0; i < (2<<node_num); i++)
-    {
-        dp[i] = (int *)malloc(node_num * sizeof(int));
-        memset(dp[i], -1, node_num);
-    }
-
-    /*分配route数组，路径规划*/
-    /*int **route = (int **)malloc((2<<node_num) * sizeof(int));
-    for(int j=0; j< (2<<node_num) * sizeof(int); j++)
-    {
-        route[j] = (int *)malloc(node_num * sizeof(int));
-    }
-    */
-    for(int i=0; i < (2<<node_num); i++)
-    {
-        memset(dp[i], -1, node_num);
-    }
+    memset(dp, -1, sizeof(dp));
     /*必经点集压缩*/
     int demand = 0;
     for(int i=0; i<must_num; i++)
@@ -51,9 +33,24 @@ int search_route()
     }
     demand = demand | (1<<Dst);
 
-    int result = recursion(1<<Src, Src, dp, route, demand);
-    printf("%d\n", result);
+    int result = recursion(1<<Src, Src, demand);
+
     /*输出 route*/
+    if(result < INF)
+    {
+        printf("all the cost = %d\n", result);
+        int u = Src, S = 1<<Src, e = -1;
+        while(u != Dst)
+        {
+            e = route[S][u];
+            u = Edge[e].dst;
+            S = S | (1<<u);
+            printf("%d ", Edge[e].linkID);
+        }
+    }
+    else
+        printf("NA\n");
+
     return 0;
 };
 
@@ -91,9 +88,7 @@ int Dijkstra(int src, int dst)
             }
         }
 
-
     }
-
     return 0;
 }
 
@@ -101,7 +96,7 @@ int Dijkstra(int src, int dst)
  S已遍历点
  v当前点
 */
-int recursion(int S, int v, int dp[][20], int route[][20], const int demand)
+int recursion(int S, int v, const int demand)
 {
     /*记忆化搜索*/
     if(dp[S][v] >= 0)
@@ -112,10 +107,10 @@ int recursion(int S, int v, int dp[][20], int route[][20], const int demand)
     int res = INF;
     for(int e = first[v]; e != -1; e = next[e])
     {
-        int u = Edge[v].dst;
+        int u = Edge[e].dst;
         if(!(S>>u & 1))
         {
-            int temp = Edge[e].cost + recursion(S|1<<u, u, dp, route, demand);
+            int temp = Edge[e].cost + recursion(S|1<<u, u, demand);
             if(temp < res )
             {
                 res = temp;
