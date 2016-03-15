@@ -10,14 +10,14 @@
 #include "DataStructure.h"
 #include "route.h"
 
-
-typedef  std::pair<int, int> pair_i_i;
+using namespace std;
+typedef pair<int, int> pair_i_i;
 
 extern Link Edge[lMAX];
 extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX];
 extern int Src, Dst, node_num, edge_num, must_num;
 
-/* 20个点*/
+/* 20个点以内使用dp求解 */
 int route[1<<20][20];
 int dp[1<<20][20];
 
@@ -47,48 +47,76 @@ int search_route()
             S = S | (1<<u);
             printf("%d ", Edge[e].linkID);
         }
+        printf("\n");
     }
     else
         printf("NA\n");
 
     return 0;
-};
+}
 
 int Dijkstra(int src, int dst)
 {
+    /* 最小值优先的优先队列 */
+
     /*标号数组*/
     int D[nMAX];
     int path[nMAX]; /*保存路径,path[nodeID] = edgeID*/
     for(int i=0; i<node_num; i++)
-        D[i] = (i==0? 0: INF);
+        D[i] = (i==src ? 0: INF);
 
     /*优先队列*/
-    std::priority_queue<pair_i_i, std::vector<pair_i_i>, std::greater<pair_i_i> > Q;
+    priority_queue<pair_i_i, vector<pair_i_i>, greater<pair_i_i> > Q;
 
     /*起点进入优先队列*/
-    Q.push(std::make_pair(D[src], src));
+    Q.push(make_pair(D[src], src));
     while(!Q.empty())
     {
         /*队列中具有最小标号的*/
         pair_i_i x = Q.top();
         Q.pop();
         int u = x.second;
+        /* 避免节点的重复处理 */
+        if(x.first != D[u]) continue;
         if( u == dst) /*到达终点*/
             break;
 
         /*更新节点u出发的所有边 */
-        for(int e = first[src]; e != -1; e = next[e])
+        for(int e = first[u]; e != -1; e = next[e])
         {
             int v = Edge[e].dst;
             if(D[u]+Edge[e].cost < D[v])
             {
                 D[v] = D[u]+Edge[e].cost;
-                Q.push(std::make_pair(D[v], v)); /*标号更新成功，加入优先队列*/
-                path[v] = e; /*更新路径*/
+                Q.push(make_pair(D[v], v)); /*标号更新成功，加入优先队列*/
+                path[v] = e; /*更新反向路径*/
             }
         }
 
     }
+
+    /*路径回溯*/
+    if( D[dst] < INF)
+    {
+        printf("the shortest path %d->%d costs %d\n", src, dst, D[dst]);
+        stack<int> trace;
+        int cur = dst, e = -1;
+        while(cur != src)
+        {
+            e = path[cur];
+            trace.push(e);
+            cur = Edge[e].src;
+        }
+        while(!trace.empty())
+        {
+            printf("%d ", trace.top());
+            trace.pop();
+        }
+        printf("\n");
+    }
+    else
+        printf("no path for %d->%d\n", src, dst);
+
     return 0;
 }
 
