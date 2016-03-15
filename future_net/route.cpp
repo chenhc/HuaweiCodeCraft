@@ -149,3 +149,32 @@ int recursion(int S, int v, const int demand)
 
     return dp[S][v] = res;
 }
+
+
+/* route 记录经过的点。steps为当前路径累计节点数 */
+int DFS(int cur, const int dst, int *route, int steps)
+{
+    if(cur == dst)
+    {
+        int ok = 1;
+        int i = 0;
+        while(i < must_num && visit[must[i]])  i++;
+        if(i < must_num) ok = 0;
+        return ok;
+    }
+
+    /* 当前节点cur 相邻所有节点，DFS */
+    for(int e= first[cur]; e != -1; e = next[e])
+    {
+        cur = Edge[e].dst;
+        if(!visit[cur])
+        {
+            visit[cur] = 1;
+            route[steps] = cur;
+            if(DFS(cur, dst, route, steps+1))
+                return true;
+            visit[cur] = 0;
+        }
+    }
+    return false;
+}

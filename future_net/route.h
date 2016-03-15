@@ -7,4 +7,5 @@ int Dijkstra(int src, int dst);
 
 int recursion(int S, int v, const int demand);
 
+int DFS(int cur, const int dst, int *route, int steps);
 #endif // ROUTE_H_INCLUDED
