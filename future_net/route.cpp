@@ -14,7 +14,7 @@ using namespace std;
 typedef pair<int, int> pair_i_i;
 
 extern Link Edge[lMAX];
-extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX];
+extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX], unblock[nMAX];
 extern int Src, Dst, node_num, edge_num, must_num;
 
 /* 20个点以内使用dp求解 */
@@ -151,30 +151,52 @@ int recursion(int S, int v, const int demand)
 }
 
 
-/* route 记录经过的点。steps为当前路径累计节点数 */
+/*
+    route 记录经过的点。steps为当前路径累计节点数
+    return 1,可行解
+    return 0,可到达终点
+    return -1，终点不可达
+*/
 int DFS(int cur, const int dst, int *route, int steps)
 {
+    int ret_code = -1;
+
     if(cur == dst)
     {
-        int ok = 1;
+        ret_code = 1;
         int i = 0;
         while(i < must_num && visit[must[i]])  i++;
-        if(i < must_num) ok = 0;
-        return ok;
+        if(i < must_num) ret_code = 0;
+        return ret_code;
     }
 
     /* 当前节点cur 相邻所有节点，DFS */
-    for(int e= first[cur]; e != -1; e = next[e])
+    for(int e = first[cur]; e != -1; e = next[e])
     {
         cur = Edge[e].dst;
+        /*剪枝*/
+        /*通过cur 终点不可达*/
+        if(unblock[cur] == -1)
+            continue;
+
         if(!visit[cur])
         {
             visit[cur] = 1;
             route[steps] = cur;
-            if(DFS(cur, dst, route, steps+1))
-                return true;
+            ret_code = DFS(cur, dst, route, steps+1);
+
+            /* 找到一个可行解，停止搜索并返回 */
+            if(ret_code == 1)
+                return ret_code;
+
+            /* 终点不可达，设置阻塞*/
+            if(ret_code == -1)
+                unblock[cur] = -1;
+
             visit[cur] = 0;
         }
     }
-    return false;
+
+    return ret_code;
 }
+

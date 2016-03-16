@@ -7,7 +7,7 @@
 #include "DataStructure.h"
 
 extern Link Edge[lMAX];
-extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX];
+extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX], unblock[nMAX];;
 extern int Src, Dst, node_num, edge_num, must_num;
 
 
@@ -25,6 +25,7 @@ int init(const char *topo_file, const char *demand_file)
 {
     /* 初始化 */
     memset(first, -1, sizeof(first));
+    memset(pre_first, -1, sizeof(pre_first));
 
     /* 打开拓扑文件 */
     FILE *fp = fopen(topo_file, "r");
@@ -47,8 +48,12 @@ int init(const char *topo_file, const char *demand_file)
         Edge[e_cnt].cost = cost;
         int temp = srcID>destID? srcID : destID;
         n_cnt = n_cnt>temp? n_cnt : temp;
+        /* 有向边邻接链表 */
         next[e_cnt] = first[srcID];
         first[srcID] = e_cnt;
+        /* 有向边反向邻接链表 */
+        pre_next[e_cnt] = pre_first[destID];
+        pre_first[destID] = e_cnt;
 
         /*统计边数*/
         e_cnt ++;

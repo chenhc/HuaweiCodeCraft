@@ -6,23 +6,31 @@
 #include "route.h"
 
 Link Edge[lMAX];
-int first[nMAX], next[nMAX], visit[lMAX], must[nMAX];
+int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX], unblock[nMAX];
 int Src, Dst, node_num, edge_num, must_num;
 
 int main(int argc, char *argv[])
 {
-    char *topo_file = "test-case/case1/topo.csv";
-    char *demand_file = "test-case/case1/demand.csv";
+    char *topo_file = "more-test-case/test-case/case2/topo.csv"; //more-test-case
+    char *demand_file = "more-test-case/test-case/case2/demand.csv";
     init(topo_file, demand_file);
     //search_route();
-    int route[30];
+    int route[200];
     memset(visit, 0, sizeof(visit));
-    DFS(Src, Dst, route, 0);
-    int i = 0;
-    printf("%d->", Src);
-    while(route[i] != Dst)
-        printf("%d->", route[i++]);
-    printf("%d\n", route[i]);
+    memset(route, 0, sizeof(route));
+    memset(unblock, 0, sizeof(unblock));
+
+    if( DFS(Src, Dst, route, 0) == 1 )
+    {
+        int i = 0;
+        printf("%d->", Src);
+        while(route[i] != Dst)
+            printf("%d->", route[i++]);
+        printf("%d", Dst);
+    }
+
+    else
+        printf("NA\n");
     return 0;
 }
 

@@ -1,7 +1,7 @@
 #ifndef IO_H_INCLUDED
 #define IO_H_INCLUDED
 
-#define nMAX 600
+#define nMAX 600+50
 #define lMAX 5000
 #define INF 99999
 
