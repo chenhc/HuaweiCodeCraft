@@ -9,13 +9,16 @@
 #include "io.h"
 #include "DataStructure.h"
 #include "route.h"
+#include <set>
 
 using namespace std;
 typedef pair<int, int> pair_i_i;
 
 extern Link Edge[lMAX];
-extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX], unblock[nMAX];
+extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX];
 extern int Src, Dst, node_num, edge_num, must_num;
+extern int Dist[nMAX][nMAX];
+extern set<int> Subject;
 
 /* 20个点以内使用dp求解 */
 int route[1<<20][20];
@@ -150,16 +153,13 @@ int recursion(int S, int v, const int demand)
     return dp[S][v] = res;
 }
 
-
 /*
     route 记录经过的点。steps为当前路径累计节点数
-    return 1,可行解
-    return 0,可到达终点
-    return -1，终点不可达
 */
 int DFS(int cur, const int dst, int *route, int steps)
 {
-    int ret_code = -1;
+
+    int ret_code = 0;
 
     if(cur == dst)
     {
@@ -176,8 +176,8 @@ int DFS(int cur, const int dst, int *route, int steps)
         cur = Edge[e].dst;
         /*剪枝*/
         /*通过cur 终点不可达*/
-        if(unblock[cur] == -1)
-            continue;
+        /*if(unblock[cur] == -1)
+            continue;*/
 
         if(!visit[cur])
         {
@@ -189,9 +189,73 @@ int DFS(int cur, const int dst, int *route, int steps)
             if(ret_code == 1)
                 return ret_code;
 
-            /* 终点不可达，设置阻塞*/
-            if(ret_code == -1)
-                unblock[cur] = -1;
+            visit[cur] = 0;
+        }
+    }
+
+    return ret_code;
+}
+
+int floyd()
+{
+    for(int i=0; i<node_num; i++)
+        for(int j=0; j<node_num; j++)
+        {
+            if(i == j)
+                Dist[i][j] = 0;
+            else if( Dist[i][j] == -1)
+                Dist[i][j] = INF;
+        }
+
+    for(int k = 0; k < node_num; k++)
+        for(int i = 0; i < node_num; i++)
+            for(int j = 0; j < node_num; j++)
+            {
+                int temp = Dist[i][k] + Dist[k][j];
+                if(temp < Dist[i][j])
+                    Dist[i][j] = temp;
+            }
+
+    return 0;
+}
+
+int heuristic_dfs(int cur, const int dst, int *route, int steps, Link *_edge)
+{
+    int ret_code = 0;
+
+    if(cur == dst)
+    {
+        ret_code = 1;
+        int i = 0;
+        while(i < must_num && visit[must[i]])  i++;
+        if(i < must_num) ret_code = 0;
+        return ret_code;
+    }
+
+    priority_queue<pair_i_i, vector<pair_i_i>, greater<pair_i_i> > p_q;
+    for(int e = first[cur]; e != -1; e = next[e])
+    {
+        p_q.push(make_pair(Edge[e].cost, e));
+    }
+
+    /* 当前节点cur 相邻所有节点，DFS */
+    pair_i_i elem;
+    int e;
+    while(!p_q.empty())
+    {
+        elem = p_q.top();
+        p_q.pop();
+        e = elem.second;
+        cur = Edge[e].dst;
+        if(!visit[cur])
+        {
+            visit[cur] = 1;
+            route[steps] = cur;
+            ret_code = heuristic_dfs(cur, dst, route, steps+1, _edge);
+
+            /* 找到一个可行解，停止搜索并返回 */
+            if(ret_code == 1)
+                return ret_code;
 
             visit[cur] = 0;
         }
@@ -200,3 +264,22 @@ int DFS(int cur, const int dst, int *route, int steps)
     return ret_code;
 }
 
+int heuristic_search(int src, int dst, int *route)
+{
+    memset(visit, 0, sizeof(visit));
+    Link _edge[lMAX];
+    memcpy(_edge, Edge, sizeof(Edge));
+    for(int i = 0; i< node_num; i++)
+    {
+        for(int e = first[i]; e != -1; e = next[e])
+        {
+            int head = _edge[e].src, tail = _edge[e].dst;
+            if(Subject.find(tail) != Subject.end())
+            {
+                _edge[e].cost = -2;
+            }
+        }
+    }
+    visit[src] = 1;
+    return heuristic_dfs(src, dst, route, 0, _edge);
+}

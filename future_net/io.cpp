@@ -5,11 +5,14 @@
 #include <math.h>
 #include "io.h"
 #include "DataStructure.h"
+#include <set>
 
+using namespace std;
 extern Link Edge[lMAX];
-extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX], unblock[nMAX];;
+extern int first[nMAX], next[lMAX], visit[nMAX], must[nMAX], pre_first[nMAX], pre_next[lMAX];
 extern int Src, Dst, node_num, edge_num, must_num;
-
+extern int Dist[nMAX][nMAX];
+extern set<int> Subject;
 
 int strtoi(const char *str, int len)
 {
@@ -26,6 +29,16 @@ int init(const char *topo_file, const char *demand_file)
     /* 初始化 */
     memset(first, -1, sizeof(first));
     memset(pre_first, -1, sizeof(pre_first));
+    memset(Dist, -1, sizeof(Dist));
+    memset(must, -1, sizeof(must));
+
+    /**/
+    set<int>::iterator it;
+    for(it=Subject.begin(); it!=Subject.end();)
+    {
+        Subject.erase(it++);
+    }
+
 
     /* 打开拓扑文件 */
     FILE *fp = fopen(topo_file, "r");
@@ -55,6 +68,8 @@ int init(const char *topo_file, const char *demand_file)
         pre_next[e_cnt] = pre_first[destID];
         pre_first[destID] = e_cnt;
 
+        /*权值矩阵*/
+        Dist[srcID][destID] = cost;
         /*统计边数*/
         e_cnt ++;
     }
@@ -92,12 +107,14 @@ int init(const char *topo_file, const char *demand_file)
         if( i==len-1)
         {
             must[cnt] = strtoi(temp, j);
+            Subject.insert(must[cnt]);
             j = 0;
             cnt ++;
         }
         else if(buf[i]=='|')
         {
             must[cnt] = strtoi(temp, j);
+            Subject.insert(must[cnt]);
             j = 0;
             cnt ++;
         }
