@@ -60,7 +60,6 @@ Graph::Graph(const char *topo_file, const char *demand_file)
         fscanf(fp, "%d,%d,%s" , &_src, &_dst, buf);
     }
 
-    int cnt = 0;
     int len = strlen(buf);
     char temp[5];
     int i = 0, j = 0;
@@ -73,20 +72,52 @@ Graph::Graph(const char *topo_file, const char *demand_file)
         /* 遇到字符串结尾开始解析 */
         if( i==len-1)
         {
-            _Specified[cnt] = strtoi(temp, j);
+            _Specified.insert(strtoi(temp, j));
             j = 0;
-            cnt ++;
         }
         else if(buf[i]=='|')
         {
-            _Specified[cnt] = strtoi(temp, j);
+            _Specified.insert(strtoi(temp, j));
             j = 0;
-            cnt ++;
         }
         i++;
     }
-    specified_num = cnt;
+    specified_num = _Specified.size();
     fclose(fp);
 }
 
+Route::Route()
+{
+    memset(_visit, 0, sizeof(_visit));
+}
 
+void Route::add(const Graph &G, int e)
+{
+    int node = G._Edge.at(e)._dst;
+    _path.push_back(e);
+    _visit[node] = 1;
+
+    /* if be a specified node */
+    if(G._Specified.count(node))
+        _already.push_back(node);
+}
+
+void Route::rm(const Graph &G, int e)
+{
+    int node =  G._Edge.at(e)._dst;
+    _path.pop_back();
+    _visit[node] = 0;
+
+    /* if be a specified node */
+    if(G._Specified.count(node))
+        _already.pop_back();
+}
+
+void Route::print(const Graph &G)
+{
+    for(int i = 0; i < _path.size(); i++)
+    {
+        Link L = G._Edge[_path[i]];
+        printf("%d -> %d\n", L._src, L._dst);
+    }
+}

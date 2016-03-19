@@ -2,6 +2,7 @@
 #define GRAPH_H_INCLUDED
 
 #include <vector>
+#include <set>
 
 #define nMAX 600
 #define lMAX 5000
@@ -39,7 +40,7 @@ public:
     int _nNum;
     int specified_num;
     vector<Link> _Edge;
-    int _Specified[60];
+    set<int> _Specified; /* MAX 60 nodes must be visited */
 
     int _first[nMAX];
     int _next[lMAX];
@@ -49,4 +50,16 @@ public:
     Graph(const char *topo_file, const char *demand_file);
 };
 
+class Route
+{
+public:
+    vector<int> _path; /* record the edges along the route*/
+    vector<int> _already; /* record the id of the specified nodes which already visited*/
+    int _visit[nMAX]; /* record if the node has been visited */
+
+    Route();
+    void add(const Graph &G, int e);
+    void rm(const Graph &G, int e);
+    void print(const Graph &G);
+};
 #endif // GRAPH_H_INCLUDED
